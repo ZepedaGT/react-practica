@@ -24,7 +24,7 @@ function EmployeeCard({ employee, onSelect }: EmployeeCardProps) {
         <div
             onClick={() => onSelect?.(employee)}
             style={{
-                border: '1px solid #e2e8f0',
+                border: '1px solid #b8c3d2',
                 borderRadius: '8px',
                 padding: '16px',
                 maxWidth: '300px',
