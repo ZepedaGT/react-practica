@@ -46,4 +46,26 @@ export const mockEmployees: Employee[] = [
         status: "active",
         role: "admin",
     },
+    {
+        id: 5,
+        name: "Lucía Fernández",
+        email: "lucia.fernandez@empresa.com",
+        position: "Diseñadora Gráfica",
+        department: "Finanzas",
+        salary: 8000,
+        hireDate: "2022-09-12",
+        status: "active",
+        role: "employee",
+    } ,
+    {
+        id: 6,
+        name: "Javier Torres",
+        email: "dbaldo@gmail.com",
+        position: "Analista de Datos",
+        department: "Tecnología",
+        salary: 9000,
+        hireDate: "2022-01-15",
+        status: "active",
+        role: "employee",
+    }
 ];
