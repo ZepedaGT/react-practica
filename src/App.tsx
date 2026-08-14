@@ -55,8 +55,11 @@ function App() {
           </ProtectedRoute>
         } />
 
-        {/* Redirigir raíz según autenticación */}
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        {/* La raíz siempre debe abrir la pantalla de login */}
+        <Route
+          path="/"
+          element={<Navigate to="/login" replace />}
+        />
 
         {/* 404 */}
         <Route path="*" element={
