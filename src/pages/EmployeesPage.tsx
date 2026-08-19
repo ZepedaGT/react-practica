@@ -6,6 +6,9 @@ import type { Employee, Department, EmployeeStatus } from '../types';
 import { mockEmployees } from '../utils/mockData';
 import EmployeeCard from '../components/EmployeeCard';
 import StatsBadge from '../components/StatsBadge';
+import FormField from '../components/FormField';
+
+const formFieldClass = 'w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent';
 
 function EmployeesPage() {
   // Estado de la lista completa (simulando datos del servidor)
@@ -17,213 +20,190 @@ function EmployeesPage() {
   const [selectedDepartment, setSelectedDepartment] = useState<Department | ''>('');
   const [selectedStatus, setSelectedStatus] = useState<EmployeeStatus | ''>('');
 
- // Añade este estado al inicio del componente:
-const [showForm, setShowForm] = useState<boolean>(false);
+  // Estado del modal de alta
+  const [showForm, setShowForm] = useState<boolean>(false);
 
-// Simular carga de datos (en clases siguientes conectaremos la API real)
-useEffect(() => {
-const timer = setTimeout(() => {
-setEmployees(mockEmployees);
-setLoading(false);
-}, 800); // Simula latencia de red
-return () => clearTimeout(timer); // Cleanup: cancelar si el componente se desmonta
-}, []);
+  // Simular carga de datos (en clases siguientes conectaremos la API real)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setEmployees(mockEmployees);
+      setLoading(false);
+    }, 800); // Simula latencia de red
+    return () => clearTimeout(timer); // Cleanup: cancelar si el componente se desmonta
+  }, []);
 
-// Filtrar empleados según los criterios activos
-const filteredEmployees = employees.filter(emp => {
-const matchesSearch = emp.name.toLowerCase().includes(search.toLowerCase()) ||
-emp.email.toLowerCase().includes(search.toLowerCase()) ||
-emp.position.toLowerCase().includes(search.toLowerCase());
-const matchesDepartment = !selectedDepartment || emp.department === selectedDepartment;
-const matchesStatus = !selectedStatus || emp.status === selectedStatus;
-return matchesSearch && matchesDepartment && matchesStatus;
-});
+  // Filtrar empleados según los criterios activos
+  const filteredEmployees = employees.filter(emp => {
+    const matchesSearch = emp.name.toLowerCase().includes(search.toLowerCase()) ||
+      emp.email.toLowerCase().includes(search.toLowerCase()) ||
+      emp.position.toLowerCase().includes(search.toLowerCase());
+    const matchesDepartment = !selectedDepartment || emp.department === selectedDepartment;
+    const matchesStatus = !selectedStatus || emp.status === selectedStatus;
+    return matchesSearch && matchesDepartment && matchesStatus;
+  });
 
-// Estadísticas generales (sobre el total de empleados, no sobre el filtro activo)
-const totalEmployees = employees.length;
-const activeEmployees = employees.filter(emp => emp.status === 'active').length;
-const onLeaveEmployees = employees.filter(emp => emp.status === 'on_leave').length;
-const inactiveEmployees = employees.filter(emp => emp.status === 'inactive').length;
+  // Estadísticas generales (sobre el total de empleados, no sobre el filtro activo)
+  const totalEmployees = employees.length;
+  const activeEmployees = employees.filter(emp => emp.status === 'active').length;
+  const onLeaveEmployees = employees.filter(emp => emp.status === 'on_leave').length;
+  const inactiveEmployees = employees.filter(emp => emp.status === 'inactive').length;
 
-// Memoizamos el handler para no recrearlo en cada render
-const handleSelectEmployee = useCallback((employee: Employee) => {
-alert(`Empleado: ${employee.name}\nCargo: ${employee.position}\nDepartamento:
-${employee.department}`);
-}, []);
-const handleDeleteEmployee = useCallback((id: number) => {
-if (!confirm('¿Estás seguro de eliminar este empleado?')) return;
-setEmployees(prev => prev.filter(emp => emp.id !== id));
-}, []);
+  // Memoizamos el handler para no recrearlo en cada render
+  const handleSelectEmployee = useCallback((employee: Employee) => {
+    alert(`Empleado: ${employee.name}\nCargo: ${employee.position}\nDepartamento: ${employee.department}`);
+  }, []);
 
-// Handler para agregar empleado
-const navigate = useNavigate();
+  const handleDeleteEmployee = useCallback((id: number) => {
+    if (!confirm('¿Estás seguro de eliminar este empleado?')) return;
+    setEmployees(prev => prev.filter(emp => emp.id !== id));
+  }, []);
 
-const handleAddEmployeeFromForm = useCallback((data: Omit<Employee, 'id'>) => {
-  const newEmployee: Employee = { id: Date.now(), ...data };
-  setEmployees(prev => [...prev, newEmployee]);
-  setShowForm(false);
-  navigate('/empleados');
-}, [navigate]);
+  // Handler para agregar empleado
+  const navigate = useNavigate();
 
-const departments: Department[] = ['Tecnología', 'Recursos Humanos', 'Finanzas', 'Operaciones', 'Ventas'];
-const statuses: EmployeeStatus[] = ['active', 'inactive', 'on_leave'];
-const statusLabels: Record<EmployeeStatus, string> = {
-active: 'Activo',
-inactive: 'Inactivo',
-on_leave: 'En permiso',
-};
+  const handleAddEmployeeFromForm = useCallback((data: Omit<Employee, 'id'>) => {
+    const newEmployee: Employee = { id: Date.now(), ...data };
+    setEmployees(prev => [...prev, newEmployee]);
+    setShowForm(false);
+    navigate('/empleados');
+  }, [navigate]);
 
+  const departments: Department[] = ['Tecnología', 'Recursos Humanos', 'Finanzas', 'Operaciones', 'Ventas'];
+  const statuses: EmployeeStatus[] = ['active', 'inactive', 'on_leave'];
+  const statusLabels: Record<EmployeeStatus, string> = {
+    active: 'Activo',
+    inactive: 'Inactivo',
+    on_leave: 'En permiso',
+  };
 
-return (
-<div style={{ padding: '24px' }}>
-{/* Encabezado */}
-<div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-<div>
-<h2 style={{ margin: 0, color: '#1e293b' }}>Gestión de Empleados</h2>
-<p style={{ margin: '4px 0 0', color: '#64748b' }}>
-{filteredEmployees.length} de {employees.length} empleados
-</p>
-</div>
-<button
-onClick={() => setShowForm(!showForm)}
-style={{
-padding: '8px 16px', background: '#1e40af', color: 'white',
-border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px'
-}}
->
-+ Agregar empleado
-</button>
-</div>
+  return (
+    <div className="max-w-7xl mx-auto p-4 sm:p-6">
+      {/* Encabezado */}
+      <div className="mb-6 flex justify-between items-start">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900">Gestión de Empleados</h2>
+          <p className="text-slate-500 mt-1">
+            {filteredEmployees.length} de {employees.length} empleados
+          </p>
+        </div>
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="px-4 py-2 bg-brand-800 hover:bg-brand-700 text-white
+                    rounded-lg text-sm font-medium transition-colors"
+        >
+          + Agregar empleado
+        </button>
+      </div>
 
-{/* Estadísticas */}
-<div style={{ display: 'flex', gap: '16px', marginBottom: '24px' }}>
-<StatsBadge label="Total de empleados" value={totalEmployees} color="#2563eb" />
-<StatsBadge label="Empleados activos" value={activeEmployees} color="#16a34a" />
-<StatsBadge label="Empleados en permiso" value={onLeaveEmployees} color="#ca8a04" />
-<StatsBadge label="Empleados inactivos" value={inactiveEmployees} color="#d44444" />
-</div>
+      {/* Estadísticas */}
+      <div className="flex flex-wrap gap-4 mb-6">
+        <StatsBadge label="Total de empleados" value={totalEmployees} variant="blue" />
+        <StatsBadge label="Empleados activos" value={activeEmployees} variant="green" />
+        <StatsBadge label="Empleados en permiso" value={onLeaveEmployees} variant="yellow" />
+        <StatsBadge label="Empleados inactivos" value={inactiveEmployees} variant="red" />
+      </div>
 
-{showForm && (
-  <Modal onClose={() => setShowForm(false)}>
-    <EmployeeForm onSave={handleAddEmployeeFromForm} onCancel={() => setShowForm(false)} />
-  </Modal>
-)}
+      {showForm && (
+        <Modal onClose={() => setShowForm(false)}>
+          <EmployeeForm onSave={handleAddEmployeeFromForm} onCancel={() => setShowForm(false)} />
+        </Modal>
+      )}
 
-{/* Barra de filtros */}
-<div style={{
-display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'flex-end',
-marginBottom: '24px', padding: '16px',
-background: 'white', borderRadius: '8px',
-border: '1px solid #e2e8f0'
-}}>
-{/* Búsqueda por texto */}
-<div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: '1', minWidth: '220px' }}>
-<label style={{ fontSize: '12px', fontWeight: 600, color: '#475569' }}>Buscar</label>
-<input
-type="text"
-placeholder="Buscar por nombre, email o cargo..."
-value={search}
-onChange={(e) => setSearch(e.target.value)}
-style={{
-padding: '8px 12px', border: '1px solid #cbd5e1',
-borderRadius: '6px', fontSize: '14px', color: '#1e293b', background: 'white'
-}}
-/>
-</div>
+      {/* Barra de filtros */}
+      <div className="flex flex-wrap items-end gap-4 mb-6 p-4
+                      bg-white rounded-lg border border-slate-200">
+        {/* Búsqueda por texto */}
+        <FormField label="Buscar" className="flex-1 min-w-[220px]">
+          <input
+            type="text"
+            placeholder="Buscar por nombre, email o cargo..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className={formFieldClass}
+          />
+        </FormField>
 
-{/* Filtro por departamento */}
-<div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: '180px' }}>
-<label style={{ fontSize: '12px', fontWeight: 600, color: '#475569' }}>Departamento</label>
-<select
-value={selectedDepartment}
-onChange={(e) => setSelectedDepartment(e.target.value as Department | '')}
-style={{
-padding: '8px 12px', border: '1px solid #cbd5e1',
-borderRadius: '6px', fontSize: '14px', color: '#1e293b', background: 'white'
-}}
->
-<option value="">Todos los departamentos</option>
-{departments.map(dept => (
-<option key={dept} value={dept}>{dept}</option>
-))}
-</select>
-</div>
+        {/* Filtro por departamento */}
+        <FormField label="Departamento" className="min-w-[180px]">
+          <select
+            value={selectedDepartment}
+            onChange={(e) => setSelectedDepartment(e.target.value as Department | '')}
+            className={formFieldClass}
+          >
+            <option value="">Todos los departamentos</option>
+            {departments.map(dept => (
+              <option key={dept} value={dept}>{dept}</option>
+            ))}
+          </select>
+        </FormField>
 
-{/* Filtro por estado */}
-<div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: '160px' }}>
-<label style={{ fontSize: '12px', fontWeight: 600, color: '#475569' }}>Estado</label>
-<select
-value={selectedStatus}
-onChange={(e) => setSelectedStatus(e.target.value as EmployeeStatus | '')}
-style={{
-padding: '8px 12px', border: '1px solid #cbd5e1',
-borderRadius: '6px', fontSize: '14px', color: '#1e293b', background: 'white'
-}}
->
-<option value="">Todos los estados</option>
-{statuses.map(status => (
-<option key={status} value={status}>{statusLabels[status]}</option>
-))}
-</select>
-</div>
+        {/* Filtro por estado */}
+        <FormField label="Estado" className="min-w-[160px]">
+          <select
+            value={selectedStatus}
+            onChange={(e) => setSelectedStatus(e.target.value as EmployeeStatus | '')}
+            className={formFieldClass}
+          >
+            <option value="">Todos los estados</option>
+            {statuses.map(status => (
+              <option key={status} value={status}>{statusLabels[status]}</option>
+            ))}
+          </select>
+        </FormField>
 
-{/* Botón limpiar filtros */}
-{(search || selectedDepartment || selectedStatus) && (
-<button
-onClick={() => { setSearch(''); setSelectedDepartment(''); setSelectedStatus(''); }}
-style={{
-padding: '8px 12px', background: '#fee2e2', color: '#dc2626',
-border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px'
-}}
->
-Limpiar filtros
-</button>
-)}
-</div>
+        {/* Botón limpiar filtros */}
+        {(search || selectedDepartment || selectedStatus) && (
+          <button
+            onClick={() => { setSearch(''); setSelectedDepartment(''); setSelectedStatus(''); }}
+            className="px-3 py-2 bg-red-100 hover:bg-red-200 text-red-600
+                      rounded-lg text-sm transition-colors"
+          >
+            Limpiar filtros
+          </button>
+        )}
+      </div>
 
-{/* Estado de carga */}
-{loading && (
-<div style={{ textAlign: 'center', padding: '48px', color: '#64748b' }}>
-<p>Cargando empleados...</p>
-</div>
-)}
-{/* Sin resultados */}
-{!loading && filteredEmployees.length === 0 && (
-<div style={{ textAlign: 'center', padding: '48px', color: '#64748b' }}>
-<p>No se encontraron empleados con los filtros aplicados.</p>
-</div>
-)}
+      {/* Estado de carga */}
+      {loading && (
+        <div className="text-center py-12 text-slate-500">
+          <p>Cargando empleados...</p>
+        </div>
+      )}
 
-{/* Lista de empleados */}
-{!loading && filteredEmployees.length > 0 && (
-<div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-{filteredEmployees.map(employee => (
-<div key={employee.id} style={{ position: 'relative' }}>
-<button
-onClick={() => handleDeleteEmployee(employee.id)}
-aria-label="Eliminar empleado"
-title="Eliminar empleado"
-style={{
-position: 'absolute', top: '-10px', right: '-10px', zIndex: 1,
-width: '24px', height: '24px', borderRadius: '50%',
-border: '2px solid white', background: '#ef4444', color: 'white',
-cursor: 'pointer', fontSize: '14px', lineHeight: '20px',
-boxShadow: '0 1px 3px rgba(0,0,0,0.25)'
-}}
->
-×
-</button>
+      {/* Sin resultados */}
+      {!loading && filteredEmployees.length === 0 && (
+        <div className="text-center py-12 text-slate-500">
+          <p>No se encontraron empleados con los filtros aplicados.</p>
+        </div>
+      )}
 
-<EmployeeCard
-employee={employee}
-onSelect={handleSelectEmployee}
-/>
-</div>
-))}
-</div>
-)}
-</div>
-);
+      {/* Lista de empleados */}
+      {!loading && filteredEmployees.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3
+                        xl:grid-cols-4 gap-4">
+          {filteredEmployees.map(employee => (
+            <div key={employee.id} className="relative">
+              <button
+                onClick={() => handleDeleteEmployee(employee.id)}
+                aria-label="Eliminar empleado"
+                title="Eliminar empleado"
+                className="absolute -top-2.5 -right-2.5 z-10 w-6 h-6
+                          rounded-full border-2 border-white bg-red-500
+                          text-white cursor-pointer text-sm leading-5
+                          shadow-md"
+              >
+                ×
+              </button>
+              <EmployeeCard
+                employee={employee}
+                onSelect={handleSelectEmployee}
+              />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default EmployeesPage;
