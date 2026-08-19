@@ -26,18 +26,8 @@ function Header({ user, onLogout }: HeaderProps) {
 
             {user && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <span style={{ fontSize: '14px' }}>
-                        Bienvenido, <strong>{user.name}</strong>
-                    </span>
-                    <span style={{
-                        background: '#3b82f6',
-                        padding: '2px 8px',
-                        borderRadius: '12px',
-                        fontSize: '12px',
-                        textTransform: 'uppercase',
-                    }}>
-                        {user.role}
-                    </span>
+                    
+                   
                     {onLogout && (
                         <button
                             onClick={onLogout}
