@@ -1,31 +1,25 @@
+// src/components/StatsBadge.tsx
 interface StatsBadgeProps {
   label: string;
   value: number;
-  color?: string;
+  variant?: 'blue' | 'green' | 'yellow' | 'red';
 }
 
-function StatsBadge({
-  label,
-  value,
-  color = "#2563eb",
-}: StatsBadgeProps) {
-  return (
-    <div
-      style={{
-        border: `2px solid ${color}`,
-        borderRadius: "10px",
-        padding: "16px",
-        width: "170px",
-        textAlign: "center",
-      }}
-    >
-      <h2 style={{ color, margin: 0 }}>
-        {value}
-      </h2>
+const variantConfig = {
+  blue: { border: 'border-blue-600', text: 'text-blue-600' },
+  green: { border: 'border-green-600', text: 'text-green-600' },
+  yellow: { border: 'border-yellow-600', text: 'text-yellow-600' },
+  red: { border: 'border-red-500', text: 'text-red-500' },
+};
 
-      <p style={{ marginTop: "8px" }}>
-        {label}
-      </p>
+function StatsBadge({ label, value, variant = 'blue' }: StatsBadgeProps) {
+  const style = variantConfig[variant];
+
+  return (
+    <div className={`flex flex-col items-center px-5 py-3 rounded-lg
+                     bg-white border min-w-[120px] ${style.border}`}>
+      <span className={`text-2xl font-bold ${style.text}`}>{value}</span>
+      <span className="text-sm text-slate-500">{label}</span>
     </div>
   );
 }
