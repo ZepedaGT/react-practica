@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { User, LoginCredentials } from '../types';
-interface AuthState {
+export interface AuthState {
     user: User | null;
     isAuthenticated: boolean;
     isLoading: boolean;
