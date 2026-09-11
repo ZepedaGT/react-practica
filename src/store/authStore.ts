@@ -1,7 +1,6 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import type { User, LoginCredentials } from '../types';
-interface AuthState {
+export interface AuthState {
     user: User | null;
     isAuthenticated: boolean;
     isLoading: boolean;
@@ -29,8 +28,7 @@ const DEMO_USERS: Record<string, User> = {
     },
 };
 export const useAuthStore = create<AuthState>()(
-    persist(
-        (set) => ({
+    (set) => ({
             user: null,
             isAuthenticated: false,
             isLoading: false,
@@ -62,14 +60,5 @@ export const useAuthStore = create<AuthState>()(
                 });
             },
             clearError: () => set({ error: null }),
-        }),
-        {
-            name: 'auth-storage',
-            // Solo persistir user e isAuthenticated (no isLoading ni error)
-            partialize: (state) => ({
-                user: state.user,
-                isAuthenticated: state.isAuthenticated,
-            }),
-        }
-    )
+        })
 );
