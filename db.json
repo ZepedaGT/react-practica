@@ -78,6 +78,18 @@
       "role": "employee",
       "phone": "47102300",
       "id": 7
+    },
+    {
+      "name": "jerlyn",
+      "email": "sdfsdf@gmail.com",
+      "position": "analista",
+      "department": "Tecnología",
+      "salary": 4099,
+      "hireDate": "2025-05-05",
+      "status": "active",
+      "role": "employee",
+      "phone": "47102300",
+      "id": 8
     }
   ]
 }
