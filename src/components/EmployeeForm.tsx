@@ -1,118 +1,225 @@
-import { useState } from 'react';
-import FormField from './FormField';
-import type { Employee, Department, EmployeeStatus, EmployeeRole } from '../types';
-
+import { useEffect } from 'react';
+import type { ReactNode } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { employeeSchema, type EmployeeFormData, type EmployeeFormInput } from '../schemas/employeeSchema';
+import type { Employee } from '../types';
 interface EmployeeFormProps {
-  onSave: (data: Omit<Employee, 'id'>) => void;
-  onCancel: () => void;
+    employee?: Employee; // Si viene, es modo edición
+    onSubmit: (data: EmployeeFormData) => Promise<void>;
+    onCancel: () => void;
+    isLoading?: boolean;
+    error?: string | null;
 }
-
-export default function EmployeeForm({ onSave, onCancel }: EmployeeFormProps) {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [position, setPosition] = useState('');
-  const [department, setDepartment] = useState<Department>('Tecnología');
-  const [salary, setSalary] = useState<string>('');
-  const [hireDate, setHireDate] = useState('');
-  const [status, setStatus] = useState<EmployeeStatus>('active');
-  const [role, setRole] = useState<EmployeeRole>('employee');
-  const [phone, setPhone] = useState('');
-  const [avatarUrl, setAvatarUrl] = useState('');
-
-  const departments: Department[] = ['Tecnología', 'Recursos Humanos', 'Finanzas', 'Operaciones', 'Ventas'];
-  const statuses: EmployeeStatus[] = ['active', 'inactive', 'on_leave'];
-  const statusLabels: Record<EmployeeStatus, string> = { active: 'Activo', inactive: 'Inactivo', on_leave: 'En permiso' };
-  const roles: EmployeeRole[] = ['employee', 'hr', 'admin'];
-  const roleLabels: Record<EmployeeRole, string> = { employee: 'Empleado', hr: 'Recursos Humanos', admin: 'Administrador' };
-
-  const formFieldStyle = {
-    padding: '8px 12px', border: '1px solid #cbd5e1',
-    borderRadius: '6px', fontSize: '14px', color: '#1e293b', background: 'white', width: '100%',
-    boxSizing: 'border-box' as const,
-  };
-
-  const handleSave = () => {
-    if (!name.trim() || !email.trim() || !position.trim() || !hireDate) return;
-
-    const payload: Omit<Employee, 'id'> = {
-      name: name.trim(),
-      email: email.trim(),
-      position: position.trim(),
-      department,
-      salary: Number(salary) || 0,
-      hireDate,
-      status,
-      role,
-      ...(phone.trim() && { phone: phone.trim() }),
-      ...(avatarUrl.trim() && { avatarUrl: avatarUrl.trim() }),
-    };
-
-    onSave(payload);
-    // reset local form
-    setName(''); setEmail(''); setPosition(''); setDepartment('Tecnología'); setSalary(''); setHireDate(''); setStatus('active'); setRole('employee'); setPhone(''); setAvatarUrl('');
-  };
-
-  return (
-    <div>
-      <p style={{ margin: '0 0 12px', fontWeight: 600, color: '#1e293b' }}>Nuevo empleado</p>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginBottom: '16px' }}>
-        <FormField label="Nombre completo *">
-          <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Ej. Juan Pérez" style={formFieldStyle} />
-        </FormField>
-        <FormField label="Correo electrónico *">
-          <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Ej. juan.perez@empresa.com" style={formFieldStyle} />
-        </FormField>
-        <FormField label="Cargo *">
-          <input type="text" value={position} onChange={e => setPosition(e.target.value)} placeholder="Ej. Analista" style={formFieldStyle} />
-        </FormField>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569' }}>Departamento *</label>
-          <select value={department} onChange={e => setDepartment(e.target.value as Department)} style={formFieldStyle}>
-            {departments.map(d => <option key={d} value={d}>{d}</option>)}
-          </select>
+function FormField({
+    label,
+    error,
+    children,
+    required = false,
+}: {
+    label: string;
+    error?: string;
+    children: ReactNode;
+    required?: boolean;
+}) {
+    return (
+        <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                {label}
+                {required && <span className="text-red-500 ml-1" aria-hidden="true">*</span>}
+            </label>
+            {children}
+            {error && (
+                <p className="mt-1 text-xs text-red-600" role="alert">
+                    {error}
+                </p>
+            )}
         </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569' }}>Salario mensual *</label>
-          <input type="number" min="0" value={salary} onChange={e => setSalary(e.target.value)} placeholder="Ej. 8500" style={formFieldStyle} />
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569' }}>Fecha de ingreso *</label>
-          <input type="date" value={hireDate} onChange={e => setHireDate(e.target.value)} style={formFieldStyle} />
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569' }}>Estado *</label>
-          <select value={status} onChange={e => setStatus(e.target.value as EmployeeStatus)} style={formFieldStyle}>
-            {statuses.map(s => <option key={s} value={s}>{statusLabels[s]}</option>)}
-          </select>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569' }}>Rol *</label>
-          <select value={role} onChange={e => setRole(e.target.value as EmployeeRole)} style={formFieldStyle}>
-            {roles.map(r => <option key={r} value={r}>{roleLabels[r]}</option>)}
-          </select>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569' }}>Teléfono (opcional)</label>
-          <input type="text" value={phone} onChange={e => setPhone(e.target.value)} placeholder="Ej. 5555-5555" style={formFieldStyle} />
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569' }}>URL de foto (opcional)</label>
-          <input type="text" value={avatarUrl} onChange={e => setAvatarUrl(e.target.value)} placeholder="https://..." style={formFieldStyle} />
-        </div>
-
-      </div>
-
-      <div style={{ display: 'flex', gap: '8px' }}>
-        <button onClick={handleSave} style={{ padding: '8px 16px', background: '#16a34a', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Guardar</button>
-        <button onClick={onCancel} style={{ padding: '8px 16px', background: '#e2e8f0', color: '#475569', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Cancelar</button>
-      </div>
-    </div>
-  );
+    );
 }
+const inputClass = (hasError: boolean) => `
+w-full px-3 py-2 border rounded-lg text-sm transition-colors
+focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent
+${hasError
+        ? 'border-red-400 bg-red-50 focus:ring-red-400'
+        : 'border-slate-300 bg-white'
+    }
+`;
+function EmployeeForm({ employee, onSubmit, onCancel, isLoading = false, error }: EmployeeFormProps) {
+    const isEditing = !!employee;
+    const {
+        register,
+        handleSubmit,
+        reset,
+        formState: { errors, isDirty },
+    } = useForm<EmployeeFormInput, unknown, EmployeeFormData>({
+        resolver: zodResolver(employeeSchema),
+        defaultValues: {
+            name: '',
+            email: '',
+            position: '',
+            department: 'Tecnología',
+            salary: 0,
+            hireDate: new Date().toISOString().split('T')[0],
+            role: 'employee',
+            status: 'active',
+            phone: '',
+            avatarUrl: '',
+        },
+    });
+    useEffect(() => {
+        if (employee) {
+            reset({
+                name: employee.name,
+                email: employee.email,
+                position: employee.position,
+                department: employee.department,
+                salary: employee.salary,
+                hireDate: employee.hireDate,
+                role: employee.role,
+                status: employee.status,
+                phone: employee.phone || '',
+                avatarUrl: employee.avatarUrl || '',
+            });
+        }
+    }, [employee, reset]);
+    return (
+        <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
+            {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm" role="alert">
+                    {error}
+                </div>
+            )}
+            {/* Fila 1: Nombre y Email */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField label="Nombre completo" error={errors.name?.message} required>
+                    <input
+                        {...register('name')}
+                        type="text"
+                        placeholder="Ana García"
+                        className={inputClass(!!errors.name)}
+                        aria-required="true"
+                        aria-describedby={errors.name ? 'name-error' : undefined}
+                    />
+                </FormField>
+                <FormField label="Correo electrónico" error={errors.email?.message} required>
+                    <input
+                        {...register('email')}
+                        type="email"
+                        placeholder="ana@empresa.com"
+                        className={inputClass(!!errors.email)}
+                        aria-required="true"
+                    />
+                </FormField>
+            </div>
+            {/* Fila 2: Cargo y Departamento */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField label="Cargo" error={errors.position?.message} required>
+                    <input
+                        {...register('position')}
+                        type="text"
+                        placeholder="Desarrolladora Frontend"
+                        className={inputClass(!!errors.position)}
+                        aria-required="true"
+                    />
+                </FormField>
+                <FormField label="Departamento" error={errors.department?.message} required>
+                    <select
+                        {...register('department')}
+                        className={inputClass(!!errors.department)}
+                        aria-required="true"
+                    >
+                        <option value="">Selecciona...</option>
+                        {['Tecnología', 'Recursos Humanos', 'Finanzas', 'Operaciones', 'Ventas'].map(d => (
+                            <option key={d} value={d}>{d}</option>
+                        ))}
+                    </select>
+                </FormField>
+            </div>
+            {/* Fila 3: Salario y Fecha de ingreso */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField label="Salario (GTQ)" error={errors.salary?.message} required>
+                    <input
+                        {...register('salary')}
+                        type="number"
+                        min="0"
+                        step="100"
+                        placeholder="8500"
+                        className={inputClass(!!errors.salary)}
+                        aria-required="true"
+                    />
+                </FormField>
+                <FormField label="Fecha de ingreso" error={errors.hireDate?.message} required>
+                    <input
+                        {...register('hireDate')}
+                        type="date"
+                        className={inputClass(!!errors.hireDate)}
+                        aria-required="true"
+                    />
+                </FormField>
+            </div>
+            {/* Fila 4: Rol y Estado */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField label="Rol del sistema" error={errors.role?.message}>
+                    <select {...register('role')} className={inputClass(!!errors.role)}>
+                        <option value="employee">Empleado</option>
+                        <option value="hr">RRHH</option>
+                        <option value="admin">Administrador</option>
+                    </select>
+                </FormField>
+                <FormField label="Estado" error={errors.status?.message}>
+                    <select {...register('status')} className={inputClass(!!errors.status)}>
+                        <option value="active">Activo</option>
+                        <option value="inactive">Inactivo</option>
+                        <option value="on_leave">En permiso</option>
+                    </select>
+                </FormField>
+            </div>
+            {/* Fila 5: Teléfono y Avatar (opcionales) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField label="Teléfono (opcional)" error={errors.phone?.message}>
+
+                    <input
+                        {...register('phone')}
+                        type="tel"
+                        placeholder="+502 1234-5678"
+                        className={inputClass(!!errors.phone)}
+                    />
+                </FormField>
+                <FormField label="URL de avatar (opcional)" error={errors.avatarUrl?.message}>
+                    <input
+                        {...register('avatarUrl')}
+                        type="url"
+                        placeholder="https://..."
+                        className={inputClass(!!errors.avatarUrl)}
+                    />
+                </FormField>
+            </div>
+            {/* Botones */}
+            <div className="flex justify-end gap-3 pt-2 border-t border-slate-100">
+
+                <button
+                    type="button"
+                    onClick={onCancel}
+                    disabled={isLoading}
+                    className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 border border-slate-300 hover:border-slate-400
+rounded-lg transition-colors disabled:opacity-50"
+                >
+                    Cancelar
+                </button>
+                <button
+                    type="submit"
+                    disabled={isLoading || (!isDirty && isEditing)}
+                    className="px-4 py-2 text-sm font-medium text-white bg-brand-800 hover:bg-brand-700 rounded-lg transition-colors
+disabled:opacity-50 min-w-24"
+                >
+                    {isLoading
+                        ? 'Guardando...'
+                        : isEditing ? 'Guardar cambios' : 'Crear empleado'
+                    }
+                </button>
+            </div>
+        </form>
+    );
+}
+export default EmployeeForm;
