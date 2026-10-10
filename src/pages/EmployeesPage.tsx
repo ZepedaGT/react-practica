@@ -24,7 +24,7 @@ const nextStatus: Record<EmployeeStatus, EmployeeStatus> = {
   const [selectedStatus, setSelectedStatus] = useState<EmployeeStatus | ''>('');
   // Estado del SERVIDOR: la lista de empleados, filtrada. TanStack Query se encarga
   // de pedirla, cachearla y mantenerla sincronizada — no hay useEffect ni useState local.
-  const { data, isLoading: loading, isError, error: queryError } = useEmployees({
+  const { data, isLoading: loading, isError, isFetching, refetch } = useEmployees({
     search: search || undefined,
     department: selectedDepartment || undefined,
     status: selectedStatus || undefined,
@@ -211,17 +211,25 @@ const nextStatus: Record<EmployeeStatus, EmployeeStatus> = {
 
       {/* Estado de error */}
       {isError && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
-          <p className="text-red-700 font-medium">
-            Error al cargar los empleados
+        <div className="rounded-xl border border-rose-900 bg-slate-900 p-6 text-center text-slate-100">
+          <p className="font-medium text-rose-300">
+            No se pudieron cargar los empleados
           </p>
-          <p className="text-red-500 text-sm mt-1">
-            {(queryError as Error)?.message || 'Error desconocido'}
+          <p className="mt-1 text-sm text-slate-400">
+            Comprueba la conexión con el servicio e inténtalo de nuevo.
           </p>
+          <button
+            type="button"
+            onClick={() => { void refetch(); }}
+            disabled={isFetching}
+            className="mt-4 rounded-md bg-slate-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-600 disabled:cursor-wait disabled:opacity-60"
+          >
+            {isFetching ? 'Reintentando...' : 'Reintentar'}
+          </button>
         </div>
       )}
 
-      {employees.map((employee) => (
+      {!isError && employees.map((employee) => (
         <div key={employee.id}>
           <div>
             <button
