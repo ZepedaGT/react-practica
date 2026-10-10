@@ -2,6 +2,7 @@ import type { Employee } from '../types';
 interface EmployeeCardProps {
     employee: Employee;
     onSelect?: (employee: Employee) => void;
+    onEdit?: (employee: Employee) => void;
     onToggleStatus?: (employee: Employee) => void;
 }
 const statusConfig = {
@@ -9,7 +10,7 @@ const statusConfig = {
     inactive: { bg: 'bg-red-100', text: 'text-red-800', label: 'Inactivo' },
     on_leave: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'En permiso' },
 };
-function EmployeeCard({ employee, onSelect, onToggleStatus }: EmployeeCardProps) {
+function EmployeeCard({ employee, onSelect, onEdit, onToggleStatus }: EmployeeCardProps) {
     const { name, position, department, status, avatarUrl } = employee;
     const statusStyle = statusConfig[status];
     return (
@@ -32,6 +33,16 @@ text-lg flex-shrink-0">
                     <h3 className="font-semibold text-slate-900 truncate">{name}</h3>
                     <p className="text-sm text-slate-500 truncate">{position}</p>
                 </div>
+                {onEdit && (
+                    <button
+                        type="button"
+                        onClick={(event) => { event.stopPropagation(); onEdit(employee); }}
+                        aria-label={`Editar ${name}`}
+                        className="ml-auto shrink-0 rounded-md px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-50"
+                    >
+                        Editar
+                    </button>
+                )}
             </div>
             <div className="mt-4 flex items-center justify-between gap-2">
                 <span className="text-xs bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full font-medium truncate">
